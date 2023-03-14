@@ -30,13 +30,13 @@ export async function getContact(id) {
 }
 
 export async function updateContact(id, updates) {
-  await fakeNetwork();
-  let contacts = await localforage.getItem("contacts");
-  let contact = contacts.find((contact) => contact.id === id);
-  if (!contact) throw new Error("No contact found for", id);
-  Object.assign(contact, updates);
-  await set(contacts);
-  return contact;
+  id ??= "";
+  updates ??= {};
+
+  const response = await fetch(`http://localhost:4000/api/contacts/${id}?updates=${
+    encodeURIComponent(JSON.stringify(updates))}`, { method: 'PUT' });
+  const contact = await response.json();
+  return contact ?? null;
 }
 
 export async function deleteContact(id) {
