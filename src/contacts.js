@@ -2,13 +2,13 @@ import localforage from "localforage";
 import { matchSorter } from "match-sorter";
 import sortBy from "sort-by";
 
+// this will be translated to an API backend call of
+//  GET backend/api/contacts?q="something"
 export async function getContacts(query) {
-  await fakeNetwork(`getContacts:${query}`);
-  let contacts = await localforage.getItem("contacts");
-  if (!contacts) contacts = [];
-  if (query) {
-    contacts = matchSorter(contacts, query, { keys: ["first", "last"] });
-  }
+  query ??= "";
+  const response = await fetch(`http://localhost:4000/api/contacts?q=${
+    encodeURIComponent(query)}`);
+  const contacts = await response.json();
   return contacts.sort(sortBy("last", "createdAt"));
 }
 
