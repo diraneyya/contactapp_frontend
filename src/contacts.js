@@ -6,20 +6,20 @@ import sortBy from "sort-by";
 //  GET backend/api/contacts?q="something"
 export async function getContacts(query) {
   query ??= "";
-  const response = await fetch(`http://localhost:4000/api/contacts?q=${
-    encodeURIComponent(query)}`);
+  const response = await fetch(
+    `http://localhost:4000/api/contacts?q=${encodeURIComponent(query)}`
+  );
   const contacts = await response.json();
   return contacts.sort(sortBy("last", "createdAt"));
 }
 
 export async function createContact() {
-  await fakeNetwork();
   let id = Math.random().toString(36).substring(2, 9);
-  let contact = { id, createdAt: Date.now() };
-  let contacts = await getContacts();
-  contacts.unshift(contact);
-  await set(contacts);
-  return contact;
+  const response = await fetch(`http://localhost:4000/api/contacts/${id}`, {
+    method: "POST",
+  });
+  const contact = await response.json();
+  return contact ?? null;
 }
 
 export async function getContact(id) {
@@ -33,21 +33,25 @@ export async function updateContact(id, updates) {
   id ??= "";
   updates ??= {};
 
-  const response = await fetch(`http://localhost:4000/api/contacts/${id}?updates=${
-    encodeURIComponent(JSON.stringify(updates))}`, { method: 'PUT' });
+  const response = await fetch(
+    `http://localhost:4000/api/contacts/${id}?updates=${encodeURIComponent(
+      JSON.stringify(updates)
+    )}`,
+    { method: "PUT" }
+  );
   const contact = await response.json();
   return contact ?? null;
 }
 
 export async function deleteContact(id) {
-  let contacts = await localforage.getItem("contacts");
-  let index = contacts.findIndex((contact) => contact.id === id);
-  if (index > -1) {
-    contacts.splice(index, 1);
-    await set(contacts);
-    return true;
-  }
-  return false;
+  id ??= "";
+
+  const response = await fetch(
+    `http://localhost:4000/api/contacts/${id}`,
+    { method: "DELETE" }
+  );
+  const contact = await response.json();
+  return contact ?? false;
 }
 
 function set(contacts) {
